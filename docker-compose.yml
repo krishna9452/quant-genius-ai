@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  ai-engine:
+    build: ./ai-engine
+    ports:
+      - "5000:5000"
+    environment:
+      - OPENAI_API_KEY=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
+    volumes:
+      - ./ai-engine:/app
+
+  server:
+    build: ./server
+    ports:
+      - "5001:5000"
+    environment:
+      - SUPABASE_URL=https://oythrmgqykvycsmvrlvv.supabase.co
+      - SUPABASE_KEY=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dGhybWdxeWt2eWNzbXZybHZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3OTYxNzIsImV4cCI6MjA2OTM3MjE3Mn0.467nr3G6OLftv5pZvDYqcWpg3XUWg-VmVQ3ojP67Wh8
+      - AI_ENGINE_URL=http://ai-engine:5000
+    depends_on:
+      - ai-engine
+
+  client:
+    build:
+      context: ./client
+      dockerfile: Dockerfile
+    ports:
+      - "3000:80"
+    depends_on:
+      - server
+
+networks:
+  default:
+    driver: bridge

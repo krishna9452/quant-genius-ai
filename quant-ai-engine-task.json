@@ -1,0 +1,20 @@
+{
+  "family": "quant-ai-engine-task",
+  "containerDefinitions": [
+    {
+      "name": "ai-engine",
+      "image": "331704540738.dkr.ecr.ap-south-1.amazonaws.com/quant-ai-engine:latest",
+      "portMappings": [
+        {
+          "containerPort": 5000
+        }
+      ],
+      "essential": true
+    }
+  ],
+  "requiresCompatibilities": ["FARGATE"],
+  "networkMode": "awsvpc",
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::331704540738:role/ecsTaskExecutionRole"
+}

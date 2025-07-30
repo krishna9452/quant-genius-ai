@@ -1,0 +1,9 @@
+flask
+pandas
+numpy
+yfinance
+backtesting
+transformers
+langchain
+requests
+gunicorn

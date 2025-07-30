@@ -1,0 +1,882 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QuantGenius AI | Advanced Trading Platform</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        primary: '#2563eb',
+                        secondary: '#0f172a',
+                        accent: '#16a34a',
+                        dark: '#0a1121',
+                        card: '#1e293b',
+                        highlight: '#8b5cf6'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap');
+        
+        body {
+            background: linear-gradient(135deg, #0a1121 0%, #111827 100%);
+            color: #e5e7eb;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+        
+        .glass-card {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 16px;
+            overflow: hidden;
+        }
+        
+        .gradient-bg {
+            background: linear-gradient(135deg, #2563eb 0%, #8b5cf6 100%);
+        }
+        
+        .trading-card {
+            transition: all 0.3s ease;
+            transform-origin: center;
+        }
+        
+        .trading-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 25px rgba(59, 130, 246, 0.3);
+        }
+        
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0.4); }
+            70% { box-shadow: 0 0 0 10px rgba(139, 92, 246, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(139, 92, 246, 0); }
+        }
+        
+        .equity-chart {
+            height: 300px;
+        }
+        
+        .strategy-editor {
+            background: #0f172a;
+            border-radius: 8px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 14px;
+        }
+        
+        .positive {
+            color: #16a34a;
+        }
+        
+        .negative {
+            color: #ef4444;
+        }
+        
+        .market-movement {
+            animation: marketMove 1.5s infinite alternate;
+        }
+        
+        @keyframes marketMove {
+            0% { transform: translateX(-2px); }
+            100% { transform: translateX(2px); }
+        }
+        
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 15px 25px;
+            border-radius: 8px;
+            color: white;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateX(100%);
+            transition: all 0.3s ease;
+        }
+        
+        .toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: #16a34a;
+        }
+        
+        .toast.error {
+            background: #ef4444;
+        }
+        
+        .toast.info {
+            background: #3b82f6;
+        }
+        
+        .spinner {
+            width: 24px;
+            height: 24px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 8px;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+        
+        .chart-container {
+            height: 300px;
+            position: relative;
+        }
+        
+        .ticker-change {
+            animation: tickerPulse 2s infinite;
+        }
+        
+        @keyframes tickerPulse {
+            0% { opacity: 0.8; }
+            50% { opacity: 1; }
+            100% { opacity: 0.8; }
+        }
+    </style>
+</head>
+<body class="font-sans">
+    <!-- Toast container -->
+    <div id="toastContainer"></div>
+    
+    <!-- Header/Navigation -->
+    <header class="bg-dark border-b border-gray-800 sticky top-0 z-50">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-10 h-10 gradient-bg rounded-lg flex items-center justify-center">
+                    <i class="fas fa-chart-line text-white text-xl"></i>
+                </div>
+                <h1 class="text-xl font-bold bg-clip-text text-transparent gradient-bg">QuantGenius AI</h1>
+            </div>
+            
+            <nav class="hidden md:flex space-x-8">
+                <a href="#" class="text-primary font-medium">Dashboard</a>
+                <a href="#" class="hover:text-gray-300 transition">Strategies</a>
+                <a href="#" class="hover:text-gray-300 transition">Backtesting</a>
+                <a href="#" class="hover:text-gray-300 transition">Portfolio</a>
+                <a href="#" class="hover:text-gray-300 transition">Market Data</a>
+            </nav>
+            
+            <div class="flex items-center space-x-4">
+                <div class="relative">
+                    <div class="w-2 h-2 bg-green-500 rounded-full absolute top-0 right-0"></div>
+                    <div class="w-10 h-10 rounded-full bg-card flex items-center justify-center">
+                        <i class="fas fa-user text-gray-400"></i>
+                    </div>
+                </div>
+                <button class="bg-primary hover:bg-blue-600 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-rocket mr-2"></i>Upgrade
+                </button>
+            </div>
+        </div>
+    </header>
+
+    <div class="container mx-auto px-4 py-8">
+        <!-- Dashboard Header -->
+        <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8">
+            <div>
+                <h2 class="text-3xl font-bold mb-2">Trading Dashboard</h2>
+                <p class="text-gray-400">Real-time market insights powered by Alpaca API</p>
+            </div>
+            <div class="mt-4 md:mt-0 flex items-center space-x-3">
+                <div class="bg-card px-4 py-2 rounded-lg">
+                    <span class="text-gray-400">Status:</span>
+                    <span id="apiStatus" class="text-green-500 ml-2">Connected <i class="fas fa-check-circle"></i></span>
+                </div>
+                <button id="refreshDataBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+                    <i class="fas fa-sync-alt mr-2"></i>Refresh Data
+                </button>
+            </div>
+        </div>
+
+        <!-- Stats Overview -->
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+            <div class="glass-card p-6 trading-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400 text-sm">Portfolio Value</p>
+                        <p class="text-2xl font-bold mt-1" id="portfolioValue">$124,382.76</p>
+                        <p class="text-green-500 mt-2" id="portfolioChange"><i class="fas fa-arrow-up mr-1"></i>+3.2% Today</p>
+                    </div>
+                    <div class="bg-blue-500/20 p-3 rounded-lg">
+                        <i class="fas fa-wallet text-blue-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card p-6 trading-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400 text-sm">Active Strategies</p>
+                        <p class="text-2xl font-bold mt-1" id="activeStrategies">8</p>
+                        <p class="text-green-500 mt-2"><i class="fas fa-check-circle mr-1"></i>All Running</p>
+                    </div>
+                    <div class="bg-purple-500/20 p-3 rounded-lg">
+                        <i class="fas fa-robot text-purple-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card p-6 trading-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400 text-sm">Today's Profit</p>
+                        <p class="text-2xl font-bold mt-1" id="todaysProfit">$2,418.92</p>
+                        <p class="text-green-500 mt-2" id="roiToday"><i class="fas fa-chart-line mr-1"></i>+1.8% ROI</p>
+                    </div>
+                    <div class="bg-green-500/20 p-3 rounded-lg">
+                        <i class="fas fa-coins text-green-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="glass-card p-6 trading-card">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-gray-400 text-sm">Market Sentiment</p>
+                        <p class="text-2xl font-bold mt-1" id="marketSentiment">Bullish</p>
+                        <p class="text-green-500 mt-2" id="sentimentStrength"><i class="fas fa-bullhorn mr-1"></i>Strong Buy</p>
+                    </div>
+                    <div class="bg-yellow-500/20 p-3 rounded-lg">
+                        <i class="fas fa-chart-bar text-yellow-400 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Main Content Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+            <!-- Left Column -->
+            <div class="lg:col-span-2 space-y-8">
+                <!-- Market Dashboard -->
+                <div class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">Market Dashboard</h3>
+                        <div class="flex space-x-2">
+                            <button class="bg-card px-3 py-1 rounded text-sm" data-type="stocks">Stocks</button>
+                            <button class="bg-card px-3 py-1 rounded text-sm" data-type="crypto">Crypto</button>
+                            <button class="bg-card px-3 py-1 rounded text-sm" data-type="forex">Forex</button>
+                            <button class="bg-primary px-3 py-1 rounded text-sm" data-type="commodities">Commodities</button>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6" id="marketTickers">
+                        <!-- Tickers will be populated here -->
+                    </div>
+                    
+                    <div class="bg-dark p-4 rounded-lg">
+                        <div class="flex justify-between items-center mb-4">
+                            <h4 class="font-bold">S&P 500 Live Chart</h4>
+                            <div class="flex space-x-2 text-sm" id="chartTimeframe">
+                                <button class="text-primary" data-timeframe="1D">1D</button>
+                                <button data-timeframe="1W">1W</button>
+                                <button data-timeframe="1M">1M</button>
+                                <button data-timeframe="6M">6M</button>
+                                <button data-timeframe="1Y">1Y</button>
+                            </div>
+                        </div>
+                        
+                        <div class="chart-container">
+                            <canvas id="marketChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Strategy Builder -->
+                <div class="glass-card p-6">
+                    <div class="flex justify-between items-center mb-6">
+                        <h3 class="text-xl font-bold">AI Strategy Builder</h3>
+                        <button id="generateStrategyBtn" class="gradient-bg text-white px-4 py-2 rounded-lg hover:opacity-90 transition">
+                            <i class="fas fa-robot mr-2"></i>Generate Strategy
+                        </button>
+                    </div>
+                    
+                    <div class="bg-dark p-4 rounded-lg mb-6">
+                        <div class="flex justify-between items-center mb-4">
+                            <div class="flex space-x-4">
+                                <div id="strategyStatus" class="bg-green-600/20 px-3 py-1 rounded text-green-400 text-sm">
+                                    <i class="fas fa-bolt mr-1"></i>Active
+                                </div>
+                                <div>
+                                    <span id="strategyName" class="font-mono">MA Crossover v4</span>
+                                    <span id="strategyProfitability" class="text-gray-400 ml-2">(Profitable)</span>
+                                </div>
+                            </div>
+                            <div id="strategyROI" class="text-green-500 font-bold">
+                                +24.7% ROI
+                            </div>
+                        </div>
+                        
+                        <div class="strategy-editor p-4 rounded mb-4">
+                            <pre id="strategyCode" class="text-green-400">
+<span class="text-purple-400">class</span> <span class="text-blue-400">SMACrossoverStrategy</span>(Strategy):
+    <span class="text-purple-400">def</span> <span class="text-yellow-400">__init__</span>(<span class="text-green-400">self</span>):
+        <span class="text-green-400">self</span>.n_fast = <span class="text-orange-400">50</span>   <span class="text-gray-500"># Fast MA window</span>
+        <span class="text-green-400">self</span>.n_slow = <span class="text-orange-400">200</span>  <span class="text-gray-500"># Slow MA window</span>
+    
+    <span class="text-purple-400">def</span> <span class="text-yellow-400">init</span>(<span class="text-green-400">self</span>):
+        <span class="text-green-400">self</span>.sma_fast = <span class="text-green-400">self</span>.I(<span class="text-blue-400">SMA</span>, <span class="text-green-400">self</span>.data.Close, <span class="text-green-400">self</span>.n_fast)
+        <span class="text-green-400">self</span>.sma_slow = <span class="text-green-400">self</span>.I(<span class="text-blue-400">SMA</span>, <span class="text-green-400">self</span>.data.Close, <span class="text-green-400">self</span>.n_slow)
+    
+    <span class="text-purple-400">def</span> <span class="text-yellow-400">next</span>(<span class="text-green-400">self</span>):
+        <span class="text-purple-400">if</span> <span class="text-green-400">self</span>.sma_fast[<span class="text-orange-400">-1</span>] &gt; <span class="text-green-400">self</span>.sma_slow[<span class="text-orange-400">-1</span>] <span class="text-purple-400">and</span> <span class="text-purple-400">not</span> <span class="text-green-400">self</span>.position:
+            <span class="text-green-400">self</span>.buy()
+        <span class="text-purple-400">elif</span> <span class="text-green-400">self</span>.sma_fast[<span class="text-orange-400">-1</span>] &lt; <span class="text-green-400">self</span>.sma_slow[<span class="text-orange-400">-1</span>] <span class="text-purple-400">and</span> <span class="text-green-400">self</span>.position:
+            <span class="text-green-400">self</span>.sell()</pre>
+                        </div>
+                        
+                        <div class="flex justify-between">
+                            <button id="runBacktestBtn" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg transition">
+                                <i class="fas fa-play-circle mr-2"></i>Run Backtest
+                            </button>
+                            <div class="flex space-x-2">
+                                <button class="bg-card hover:bg-gray-700 px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-copy mr-2"></i>Copy
+                                </button>
+                                <button id="saveStrategyBtn" class="bg-card hover:bg-gray-700 px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-save mr-2"></i>Save
+                                </button>
+                                <button id="deployStrategyBtn" class="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg transition">
+                                    <i class="fas fa-bolt mr-2"></i>Deploy
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Right Column -->
+            <div class="space-y-8">
+                <!-- Portfolio Overview -->
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-bold mb-6">Portfolio Overview</h3>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-400">Equity Curve</span>
+                            <span class="text-green-500" id="portfolioGrowth">+24.7%</span>
+                        </div>
+                        <div class="chart-container">
+                            <canvas id="portfolioChart"></canvas>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-card p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-blue-500/20 p-2 rounded mr-3">
+                                    <i class="fas fa-chart-line text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Sharpe Ratio</p>
+                                    <p class="text-lg font-bold" id="sharpeRatio">1.78</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-red-500/20 p-2 rounded mr-3">
+                                    <i class="fas fa-arrow-trend-down text-red-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Max Drawdown</p>
+                                    <p class="text-lg font-bold" id="maxDrawdown">-8.2%</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-green-500/20 p-2 rounded mr-3">
+                                    <i class="fas fa-percent text-green-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Win Rate</p>
+                                    <p class="text-lg font-bold" id="winRate">64.3%</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-purple-500/20 p-2 rounded mr-3">
+                                    <i class="fas fa-scale-balanced text-purple-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Profit Factor</p>
+                                    <p class="text-lg font-bold" id="profitFactor">1.92</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- AI Recommendations -->
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-bold mb-6">AI Trading Signals</h3>
+                    
+                    <div class="space-y-4" id="tradingSignals">
+                        <!-- Signals will be populated here -->
+                    </div>
+                </div>
+                
+                <!-- Risk Management -->
+                <div class="glass-card p-6">
+                    <h3 class="text-xl font-bold mb-6">Risk Management</h3>
+                    
+                    <div class="mb-6">
+                        <div class="flex justify-between mb-2">
+                            <span class="text-gray-400">Portfolio Risk</span>
+                            <span class="text-green-500" id="riskLevel">Low</span>
+                        </div>
+                        <div class="w-full bg-gray-700 rounded-full h-2.5">
+                            <div class="bg-green-500 h-2.5 rounded-full" style="width: 30%" id="riskMeter"></div>
+                        </div>
+                    </div>
+                    
+                    <div class="grid grid-cols-2 gap-4">
+                        <div class="bg-card p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-yellow-500/20 p-2 rounded mr-3">
+                                    <i class="fas fa-exclamation-triangle text-yellow-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Exposure</p>
+                                    <p class="text-lg font-bold" id="exposure">42%</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="bg-card p-4 rounded-lg">
+                            <div class="flex items-center">
+                                <div class="bg-blue-500/20 p-2 rounded mr-3">
+                                    <i class="fas fa-shield-alt text-blue-400"></i>
+                                </div>
+                                <div>
+                                    <p class="text-gray-400 text-sm">Stop Loss</p>
+                                    <p class="text-lg font-bold" id="stopLoss">Active</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 py-8 mt-12">
+        <div class="container mx-auto px-4">
+            <div class="flex flex-col md:flex-row justify-between items-center">
+                <div class="flex items-center space-x-2 mb-4 md:mb-0">
+                    <div class="w-8 h-8 gradient-bg rounded-lg flex items-center justify-center">
+                        <i class="fas fa-chart-line text-white"></i>
+                    </div>
+                    <h2 class="text-lg font-bold">QuantGenius AI</h2>
+                </div>
+                
+                <div class="flex space-x-6 text-gray-400">
+                    <a href="#" class="hover:text-white transition">Documentation</a>
+                    <a href="#" class="hover:text-white transition">API</a>
+                    <a href="#" class="hover:text-white transition">Pricing</a>
+                    <a href="#" class="hover:text-white transition">Support</a>
+                </div>
+                
+                <div class="flex space-x-4 mt-4 md:mt-0">
+                    <a href="#" class="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-primary transition">
+                        <i class="fab fa-twitter"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-primary transition">
+                        <i class="fab fa-discord"></i>
+                    </a>
+                    <a href="#" class="w-10 h-10 rounded-full bg-card flex items-center justify-center hover:bg-primary transition">
+                        <i class="fab fa-github"></i>
+                    </a>
+                </div>
+            </div>
+            
+            <div class="border-t border-gray-800 mt-8 pt-8 text-center text-gray-500 text-sm">
+                <p>© 2023 QuantGenius AI. All rights reserved. Algorithmic trading involves substantial risk and is not suitable for every investor.</p>
+                <p class="mt-2">Data provided by Alpaca API</p>
+            </div>
+        </div>
+    </footer>
+    
+    <!-- Floating Action Button -->
+    <div class="fixed bottom-6 right-6">
+        <button class="w-14 h-14 gradient-bg rounded-full flex items-center justify-center shadow-lg hover:shadow-xl transition-all transform hover:scale-105 pulse">
+            <i class="fas fa-robot text-white text-xl"></i>
+        </button>
+    </div>
+    
+    <!-- JavaScript for Trading Platform -->
+    <script>
+        // Toast notification system
+        function showToast(message, type) {
+            const toastContainer = document.getElementById('toastContainer');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = message;
+            toastContainer.appendChild(toast);
+            
+            // Trigger reflow to restart animation
+            void toast.offsetWidth;
+            
+            toast.classList.add('show');
+            
+            // Remove toast after 3 seconds
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => {
+                    toast.remove();
+                }, 300);
+            }, 3000);
+        }
+        
+        // Format currency
+        function formatCurrency(amount) {
+            return new Intl.NumberFormat('en-US', {
+                style: 'currency',
+                currency: 'USD'
+            }).format(amount);
+        }
+        
+        // Format percentage
+        function formatPercentage(value) {
+            return `${value > 0 ? '+' : ''}${value.toFixed(2)}%`;
+        }
+        
+        // Generate realistic market data
+        function generateMarketData() {
+            return [
+                { symbol: 'SPY', name: 'S&P 500 ETF', price: 452.76, change: 1.2 },
+                { symbol: 'BTC/USD', name: 'Bitcoin', price: 62418.92, change: 3.7 },
+                { symbol: 'AAPL', name: 'Apple Inc.', price: 189.25, change: -0.4 },
+                { symbol: 'MSFT', name: 'Microsoft Corp.', price: 342.18, change: 0.9 }
+            ];
+        }
+        
+        // Generate trading signals
+        function generateTradingSignals() {
+            return [
+                { symbol: 'AAPL', name: 'Apple Inc.', price: 189.25, change: 1.2, recommendation: 'Strong Buy' },
+                { symbol: 'TSLA', name: 'Tesla Inc.', price: 245.60, change: -0.8, recommendation: 'Sell' },
+                { symbol: 'MSFT', name: 'Microsoft Corp.', price: 342.18, change: 0.9, recommendation: 'Buy' },
+                { symbol: 'NVDA', name: 'NVIDIA Corp.', price: 467.35, change: 2.4, recommendation: 'Strong Buy' }
+            ];
+        }
+        
+        // Generate historical data for charts
+        function generateHistoricalData(length = 30, base = 4500, volatility = 50) {
+            let data = [base];
+            for (let i = 1; i < length; i++) {
+                const change = (Math.random() - 0.5) * 2 * volatility;
+                data.push(data[i - 1] + change);
+            }
+            return data;
+        }
+        
+        // Initialize charts
+        function initCharts() {
+            // Market chart (S&P 500)
+            const marketCtx = document.getElementById('marketChart').getContext('2d');
+            window.marketChart = new Chart(marketCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 30 }, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'S&P 500',
+                        data: generateHistoricalData(),
+                        borderColor: '#3b82f6',
+                        backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false
+                        }
+                    }
+                }
+            });
+            
+            // Portfolio chart
+            const portfolioCtx = document.getElementById('portfolioChart').getContext('2d');
+            window.portfolioChart = new Chart(portfolioCtx, {
+                type: 'line',
+                data: {
+                    labels: Array.from({ length: 20 }, (_, i) => i + 1),
+                    datasets: [{
+                        label: 'Portfolio Value',
+                        data: generateHistoricalData(20, 100000, 2000),
+                        borderColor: '#16a34a',
+                        backgroundColor: 'rgba(22, 163, 74, 0.1)',
+                        borderWidth: 2,
+                        tension: 0.3,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            display: false
+                        }
+                    },
+                    scales: {
+                        x: {
+                            display: false
+                        },
+                        y: {
+                            display: false
+                        }
+                    }
+                }
+            });
+        }
+        
+        // Render market tickers
+        function renderMarketTickers() {
+            const tickerContainer = document.getElementById('marketTickers');
+            tickerContainer.innerHTML = '';
+            
+            const marketData = generateMarketData();
+            
+            marketData.forEach(item => {
+                const tickerDiv = document.createElement('div');
+                tickerDiv.className = 'bg-card p-4 rounded-lg';
+                
+                tickerDiv.innerHTML = `
+                    <div class="flex justify-between">
+                        <span class="font-mono">${item.symbol}</span>
+                        <span class="${item.change >= 0 ? 'text-green-500' : 'text-red-500'}">
+                            ${item.change >= 0 ? '+' : ''}${item.change}%
+                        </span>
+                    </div>
+                    <div class="text-xl font-bold mt-2">${formatCurrency(item.price)}</div>
+                    <div class="text-gray-400 text-sm mt-1">${item.name}</div>
+                `;
+                
+                tickerContainer.appendChild(tickerDiv);
+            });
+        }
+        
+        // Render trading signals
+        function renderTradingSignals() {
+            const signalsContainer = document.getElementById('tradingSignals');
+            signalsContainer.innerHTML = '';
+            
+            const signals = generateTradingSignals();
+            
+            signals.forEach(signal => {
+                const signalDiv = document.createElement('div');
+                signalDiv.className = 'bg-card p-4 rounded-lg';
+                
+                signalDiv.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <div class="flex items-center">
+                                <span class="font-bold mr-2">${signal.symbol}</span>
+                                <span class="${signal.change >= 0 ? 'text-green-500' : 'text-red-500'} font-mono">
+                                    ${signal.change >= 0 ? '+' : ''}${signal.change}%
+                                </span>
+                            </div>
+                            <p class="text-gray-400 text-sm mt-1">${signal.name}</p>
+                        </div>
+                        <div class="${signal.recommendation.includes('Buy') ? 'bg-green-500/20' : 'bg-red-500/20'} px-3 py-1 rounded-full ${signal.recommendation.includes('Buy') ? 'text-green-400' : 'text-red-400'}">
+                            <i class="fas ${signal.recommendation.includes('Buy') ? 'fa-arrow-up' : 'fa-arrow-down'} mr-1"></i>${signal.recommendation}
+                        </div>
+                    </div>
+                `;
+                
+                signalsContainer.appendChild(signalDiv);
+            });
+        }
+        
+        // Update market chart with new data
+        function updateMarketChart() {
+            if (window.marketChart) {
+                window.marketChart.data.datasets[0].data = generateHistoricalData();
+                window.marketChart.update();
+            }
+        }
+        
+        // Initialize the dashboard
+        function initDashboard() {
+            // Set API status
+            document.getElementById('apiStatus').innerHTML = 'Connected <i class="fas fa-check-circle"></i>';
+            document.getElementById('apiStatus').className = 'text-green-500 ml-2';
+            
+            // Render market data
+            renderMarketTickers();
+            renderTradingSignals();
+            
+            // Initialize charts
+            initCharts();
+            
+            showToast('Dashboard loaded successfully', 'success');
+        }
+        
+        // Event Listeners
+        document.getElementById('refreshDataBtn').addEventListener('click', () => {
+            // Show loading spinner
+            const originalText = document.getElementById('refreshDataBtn').innerHTML;
+            document.getElementById('refreshDataBtn').innerHTML = '<span class="spinner"></span> Refreshing...';
+            
+            setTimeout(() => {
+                // Update market data
+                renderMarketTickers();
+                renderTradingSignals();
+                
+                // Update charts
+                updateMarketChart();
+                
+                // Restore button text
+                document.getElementById('refreshDataBtn').innerHTML = originalText;
+                
+                showToast('Market data refreshed', 'success');
+            }, 1000);
+        });
+        
+        document.getElementById('generateStrategyBtn').addEventListener('click', function() {
+            const button = this;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="spinner"></span> Generating...';
+            
+            setTimeout(() => {
+                const version = Math.floor(Math.random() * 10) + 1;
+                const strategyName = `AI Strategy v${version}`;
+                
+                const strategyCode = `class ${strategyName.replace(/\s+/g, '')}(Strategy):
+    <span class="text-purple-400">def</span> <span class="text-yellow-400">__init__</span>(<span class="text-green-400">self</span>):
+        <span class="text-green-400">self</span>.rsi_period = <span class="text-orange-400">14</span>
+        <span class="text-green-400">self</span>.ema_short = <span class="text-orange-400">20</span>
+        <span class="text-green-400">self</span>.ema_long = <span class="text-orange-400">50</span>
+    
+    <span class="text-purple-400">def</span> <span class="text-yellow-400">init</span>(<span class="text-green-400">self</span>):
+        <span class="text-green-400">self</span>.rsi = <span class="text-green-400">self</span>.I(<span class="text-blue-400">RSI</span>, <span class="text-green-400">self</span>.data.Close, <span class="text-green-400">self</span>.rsi_period)
+        <span class="text-green-400">self</span>.ema_short_line = <span class="text-green-400">self</span>.I(<span class="text-blue-400">EMA</span>, <span class="text-green-400">self</span>.data.Close, <span class="text-green-400">self</span>.ema_short)
+        <span class="text-green-400">self</span>.ema_long_line = <span class="text-green-400">self</span>.I(<span class="text-blue-400">EMA</span>, <span class="text-green-400">self</span>.data.Close, <span class="text-green-400">self</span>.ema_long)
+    
+    <span class="text-purple-400">def</span> <span class="text-yellow-400">next</span>(<span class="text-green-400">self</span>):
+        <span class="text-purple-400">if</span> <span class="text-green-400">self</span>.rsi[<span class="text-orange-400">-1</span>] &lt; <span class="text-orange-400">30</span> <span class="text-purple-400">and</span> <span class="text-green-400">self</span>.ema_short_line[<span class="text-orange-400">-1</span>] &gt; <span class="text-green-400">self</span>.ema_long_line[<span class="text-orange-400">-1</span>] <span class="text-purple-400">and</span> <span class="text-purple-400">not</span> <span class="text-green-400">self</span>.position:
+            <span class="text-green-400">self</span>.buy()
+        <span class="text-purple-400">elif</span> <span class="text-green-400">self</span>.rsi[<span class="text-orange-400">-1</span>] &gt; <span class="text-orange-400">70</span> <span class="text-purple-400">and</span> <span class="text-green-400">self</span>.ema_short_line[<span class="text-orange-400">-1</span>] &lt; <span class="text-green-400">self</span>.ema_long_line[<span class="text-orange-400">-1</span>] <span class="text-purple-400">and</span> <span class="text-green-400">self</span>.position:
+            <span class="text-green-400">self</span>.sell()`;
+                
+                document.getElementById('strategyName').textContent = strategyName;
+                document.getElementById('strategyCode').innerHTML = strategyCode;
+                document.getElementById('strategyStatus').innerHTML = '<i class="fas fa-code mr-1"></i>Draft';
+                document.getElementById('strategyStatus').className = 'bg-yellow-600/20 px-3 py-1 rounded text-yellow-400 text-sm';
+                document.getElementById('strategyProfitability').textContent = '(Not tested)';
+                document.getElementById('strategyROI').textContent = '0% ROI';
+                
+                button.innerHTML = originalText;
+                showToast('New AI strategy generated successfully!', 'success');
+            }, 1500);
+        });
+        
+        document.getElementById('runBacktestBtn').addEventListener('click', function() {
+            const button = this;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="spinner"></span> Running...';
+            
+            setTimeout(() => {
+                const roi = (Math.random() * 20 + 5).toFixed(1);
+                const status = roi > 15 ? 'Profitable' : 'Moderate';
+                const statusClass = roi > 15 ? 'bg-green-600/20 text-green-400' : 'bg-blue-600/20 text-blue-400';
+                const statusIcon = roi > 15 ? 'fa-bolt' : 'fa-chart-line';
+                
+                document.getElementById('strategyStatus').innerHTML = `<i class="fas ${statusIcon} mr-1"></i>${roi > 15 ? 'Profitable' : 'Tested'}`;
+                document.getElementById('strategyStatus').className = `${statusClass} px-3 py-1 rounded text-sm`;
+                document.getElementById('strategyProfitability').textContent = `(${status})`;
+                document.getElementById('strategyROI').textContent = `+${roi}% ROI`;
+                document.getElementById('strategyROI').className = roi > 15 ? 'text-green-500 font-bold' : 'text-blue-500 font-bold';
+                
+                button.innerHTML = originalText;
+                showToast(`Backtest completed successfully! ROI: +${roi}%`, 'success');
+            }, 2000);
+        });
+        
+        document.getElementById('saveStrategyBtn').addEventListener('click', function() {
+            const button = this;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="spinner"></span> Saving...';
+            
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                showToast('Strategy saved successfully!', 'success');
+            }, 1000);
+        });
+        
+        document.getElementById('deployStrategyBtn').addEventListener('click', function() {
+            const button = this;
+            const originalText = button.innerHTML;
+            button.innerHTML = '<span class="spinner"></span> Deploying...';
+            
+            setTimeout(() => {
+                document.getElementById('strategyStatus').innerHTML = '<i class="fas fa-bolt mr-1"></i>Active';
+                document.getElementById('strategyStatus').className = 'bg-green-600/20 px-3 py-1 rounded text-green-400 text-sm';
+                button.innerHTML = originalText;
+                showToast('Strategy deployed successfully!', 'success');
+            }, 1500);
+        });
+        
+        // Chart timeframe buttons
+        document.querySelectorAll('#chartTimeframe button').forEach(button => {
+            button.addEventListener('click', function() {
+                // Update active button
+                document.querySelectorAll('#chartTimeframe button').forEach(btn => {
+                    btn.classList.remove('text-primary');
+                });
+                this.classList.add('text-primary');
+                
+                // Update chart
+                updateMarketChart();
+            });
+        });
+        
+        // Initialize the dashboard when page loads
+        document.addEventListener('DOMContentLoaded', initDashboard);
+    </script>
+</body>
+</html>

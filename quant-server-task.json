@@ -1,0 +1,22 @@
+{
+  "family": "quant-server-task",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "512",
+  "memory": "1024",
+  "executionRoleArn": "arn:aws:iam::331704540738:role/ecsTaskExecutionRole",
+  "containerDefinitions": [
+    {
+      "name": "server",
+      "image": "331704540738.dkr.ecr.ap-south-1.amazonaws.com/quant-server:latest",
+      "portMappings": [
+        { "containerPort": 5001 }
+      ],
+      "environment": [
+        { "name": "SUPABASE_URL", "value": "https://oythrmgqykvycsmvrlvv.supabase.co" },
+        { "name": "SUPABASE_KEY", "value": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im95dGhybWdxeWt2eWNzbXZybHZ2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTM3OTYxNzIsImV4cCI6MjA2OTM3MjE3Mn0.467nr3G6OLftv5pZvDYqcWpg3XUWg-VmVQ3ojP67Wh8" },
+        { "name": "AI_ENGINE_URL", "value": "http://ai-engine:5000" }
+      ]
+    }
+  ]
+}
