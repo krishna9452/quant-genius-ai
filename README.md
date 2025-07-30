@@ -1,11 +1,12 @@
 # QuantGenius AI 🚀
+<img width="270" height="66" alt="quant-genius-banner" src="https://github.com/user-attachments/assets/925d25ce-a325-4cee-99fb-b3d633867a70" />
 
-![QuantGenius Banner](docs/banner.png) <!-- Add your banner image later -->
+
 
 **AI-powered Investment Research Platform** with automated strategy backtesting and portfolio analytics.
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
-[![CI/CD](https://github.com/yourusername/quant-genius-ai/actions/workflows/main.yml/badge.svg)](https://github.com/yourusername/quant-genius-ai/actions)
+[![CI/CD](https://github.com/krishna9452/quant-genius-ai/actions/workflows/main.yml/badge.svg)](https://github.com/yourusername/quant-genius-ai/actions)
 [![Python 3.9+](https://img.shields.io/badge/python-3.9+-blue.svg)](https://www.python.org/downloads/)
 [![Node.js 18+](https://img.shields.io/badge/node-18+-green.svg)](https://nodejs.org/)
 
