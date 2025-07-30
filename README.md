@@ -34,6 +34,8 @@
 - PostgreSQL 14+
 - Redis 7+
 
+   https://drive.google.com/file/d/13oOK_6W4_AkEJlui9bDPSF5YWgxeBZfv/view?usp=drive_link
+
 ### Installation
 ```bash
 # Clone repository
@@ -51,3 +53,6 @@ cd ../ai-engine
 python -m venv venv
 source venv/bin/activate  # Windows: venv\Scripts\activate
 pip install -r requirements.txt
+
+
+
